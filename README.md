@@ -1,6 +1,6 @@
-# Claude MCP Bootstrap Quickstart
+# Claude MCP Bootstrap Quickstart (Windows)
 
-A streamlined bootstrap system for quickly setting up Model Context Protocol (MCP) integration with Claude Desktop, providing filesystem access, GitHub integration, and other enhanced functionality.
+A streamlined bootstrap system for quickly setting up Model Context Protocol (MCP) integration with Claude Desktop on Windows, providing filesystem access, GitHub integration, and other enhanced functionality. **Note: This setup is currently designed for Windows users only.**
 
 ## Overview
 
@@ -35,12 +35,12 @@ claude-mcp-bootstrap-quickstart/
 └── user/                      # For user-specific configurations
 ```
 
-## Installation & Setup
+## Installation & Setup (Windows)
 
-1. Ensure you have [Node.js](https://nodejs.org/) installed
-2. Ensure Claude Desktop is installed
+1. Ensure you have [Node.js](https://nodejs.org/) installed on your Windows system
+2. Ensure Claude Desktop is installed on Windows
 3. Clone or download this repository
-4. Copy `.env.template` to `.env` and update with your personal paths
+4. Copy `.env.template` to `.env` and update with your personal Windows paths
 5. Run `LaunchClaude.bat` to start Claude Desktop with MCP integration
 
 ## Environment Configuration
@@ -143,9 +143,9 @@ To add a new MCP server extension:
 4. Add documentation in the extension directory
 5. Restart Claude Desktop to apply the changes
 
-## Troubleshooting
+## Troubleshooting (Windows)
 
-If you encounter issues:
+If you encounter issues on your Windows system:
 
 1. **Environment Variables**: Ensure you've copied `.env.template` to `.env` and updated the values
 2. **Node.js Missing**: Ensure Node.js is installed and in your PATH, or set the `NODE_PATH` in `.env`
