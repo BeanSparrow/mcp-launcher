@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "${MCP_FILESYSTEM_PATHS}"
+      ]
+    }
+  },
+  "mcp": {
+    "enabled": true,
+    "accessControl": {
+      "allowedDirectories": [
+        "${MCP_FILESYSTEM_PATHS}"
+      ],
+      "allowFileOperations": true
+    }
+  }
+}
