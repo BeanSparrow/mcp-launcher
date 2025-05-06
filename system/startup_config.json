@@ -1,0 +1,8 @@
+{
+  "version": "1.0",
+  "configType": "startup",
+  "enabled": true,
+  "mergeStrategy": "merge",
+  "backupOriginal": true,
+  "backupPath": "${CLAUDE_CONFIG_PATH}.backup"
+}
