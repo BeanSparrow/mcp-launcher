@@ -45,7 +45,9 @@ claude-mcp-bootstrap-quickstart/
 
 ## Environment Configuration
 
-The `.env` file contains personal configuration values that should not be committed to source control. Copy `.env.template` to `.env` and update the values:
+The `.env` file contains personal configuration values that should not be committed to source control. Copy `.env.template` to `.env` and update the values.
+
+**Note**: By default, the filesystem server directory is set to `User\Documents\Claude` in the `.env.template`, but you can modify the `MCP_FILESYSTEM_PATHS` value to any directory you want Claude to access:
 
 ```
 # User specific paths
@@ -60,6 +62,7 @@ NODE_PATH=
 
 # MCP Configuration
 MCP_FILESYSTEM_ENABLED=true
+# Default is User\Documents\Claude but you can change this to any directory you want Claude to access
 MCP_FILESYSTEM_PATHS=C:\\Users\\YourUsername\\Documents\\Claude
 
 # GitHub integration
