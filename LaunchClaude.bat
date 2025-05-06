@@ -5,7 +5,7 @@ echo Starting Claude Desktop with MCP integration...
 set SCRIPT_DIR=%~dp0
 set BOOTSTRAP_PATH=%SCRIPT_DIR%system\bootstrap.js
 set EXTENSIONS_LOADER=%SCRIPT_DIR%system\extensions_loader.js
-set CLAUDE_APP_PATH=C:\Users\YourUsername\AppData\Local\AnthropicClaude\Claude.exe
+set CLAUDE_APP_PATH=C:\Users\Steve\AppData\Local\AnthropicClaude\Claude.exe
 
 :: Check if Node.js is available
 where node >nul 2>nul
@@ -22,7 +22,7 @@ if %ERRORLEVEL% neq 0 (
 echo Checking for required dependencies...
 if not exist "%SCRIPT_DIR%node_modules\dotenv" (
     echo Installing dotenv dependency...
-    npm install dotenv --prefix "%SCRIPT_DIR%"
+    npm install dotenv --prefix "%SCRIPT_DIR%."
 )
 
 :: Load extensions first
