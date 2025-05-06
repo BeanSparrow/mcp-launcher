@@ -5,7 +5,7 @@ echo Starting Claude Desktop with MCP integration...
 set SCRIPT_DIR=%~dp0
 set BOOTSTRAP_PATH=%SCRIPT_DIR%system\bootstrap.js
 set EXTENSIONS_LOADER=%SCRIPT_DIR%system\extensions_loader.js
-set CLAUDE_APP_PATH=C:\Users\Steve\AppData\Local\AnthropicClaude\Claude.exe
+set CLAUDE_APP_PATH=%LOCALAPPDATA%\AnthropicClaude\Claude.exe
 
 :: Check if Node.js is available
 where node >nul 2>nul
