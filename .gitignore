@@ -1,0 +1,27 @@
+# Environment variables with personal information
+.env
+
+# Backup files
+*.backup
+*.bak
+
+# Node.js
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Logs
+*.log
+logs/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Application specific
+system/deprecated/
