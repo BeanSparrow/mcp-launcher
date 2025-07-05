@@ -1,11 +1,10 @@
 import { BaseDiscordTool, DiscordToolContext } from './base-discord-tool.js';
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 
-// Import tool categories (currently empty, ready for tools to be added)
-// import {} from './auth/index.js';
-// import {} from './messaging/index.js';  
-// import {} from './channels/index.js';
-// import {} from './analytics/index.js';
+// Import our tools
+import { TestConnectionTool, GetBotInfoTool } from './auth/index.js';
+import { ListChannelsTool, GetChannelInfoTool } from './channels/index.js';
+import { ReadMessagesTool, SendMessageTool, SendReplyTool, SearchMessagesTool } from './messaging/index.js';
 
 export class DiscordToolRegistry {
   private tools: Map<string, BaseDiscordTool> = new Map();
@@ -17,15 +16,23 @@ export class DiscordToolRegistry {
   }
 
   private registerTools() {
-    // Tools will be registered here as they are created
-    console.error('Discord tool registry initialized with 0 tools');
+    // Register Tier 1 foundation tools
     
-    // Example of how tools will be registered:
-    // this.registerTool(new AuthenticateTool(this.context));
-    // this.registerTool(new GetMessagesTool(this.context));
-    // this.registerTool(new SendMessageTool(this.context));
-    // this.registerTool(new ListChannelsTool(this.context));
-    // this.registerTool(new UserActivityTool(this.context));
+    // Authentication tools
+    this.registerTool(new TestConnectionTool(this.context));
+    this.registerTool(new GetBotInfoTool(this.context));
+    
+    // Channel tools
+    this.registerTool(new ListChannelsTool(this.context));
+    this.registerTool(new GetChannelInfoTool(this.context));
+    
+    // Tier 2 messaging tools
+    this.registerTool(new ReadMessagesTool(this.context));
+    this.registerTool(new SendMessageTool(this.context));
+    this.registerTool(new SendReplyTool(this.context));
+    this.registerTool(new SearchMessagesTool(this.context));
+    
+    console.error(`Discord tool registry initialized with ${this.tools.size} tools`);
   }
 
   private registerTool(tool: BaseDiscordTool) {

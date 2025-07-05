@@ -17,6 +17,44 @@ const MCP_CONFIG_PATH = path.join(__dirname, 'mcp_config.json');
 const TARGET_CONFIG_PATH = process.env.CLAUDE_CONFIG_PATH || path.join(process.env.USER_HOME || 'C:\\Users\\YourUsername', 'AppData', 'Roaming', 'Claude', 'claude_desktop_config.json');
 
 /**
+ * Substitute environment variables in a string
+ * @param {string} str - String that may contain ${VAR_NAME} placeholders
+ * @returns {string} - String with environment variables substituted
+ */
+function substituteEnvironmentVariables(str) {
+  if (typeof str !== 'string') return str;
+  
+  return str.replace(/\$\{([^}]+)\}/g, (match, varName) => {
+    const value = process.env[varName];
+    if (value === undefined) {
+      console.warn(`Warning: Environment variable ${varName} is not defined`);
+      return match; // Keep the placeholder if variable is not found
+    }
+    return value;
+  });
+}
+
+/**
+ * Recursively substitute environment variables in an object
+ * @param {any} obj - Object to process
+ * @returns {any} - Object with environment variables substituted
+ */
+function processEnvironmentVariables(obj) {
+  if (typeof obj === 'string') {
+    return substituteEnvironmentVariables(obj);
+  } else if (Array.isArray(obj)) {
+    return obj.map(item => processEnvironmentVariables(item));
+  } else if (obj && typeof obj === 'object') {
+    const processed = {};
+    for (const [key, value] of Object.entries(obj)) {
+      processed[key] = processEnvironmentVariables(value);
+    }
+    return processed;
+  }
+  return obj;
+}
+
+/**
  * Bootstrap the MCP configuration
  */
 function bootstrapConfiguration() {
@@ -41,9 +79,13 @@ function bootstrapConfiguration() {
   try {
     // Read configs
     const startupConfig = JSON.parse(fs.readFileSync(STARTUP_CONFIG_PATH, 'utf8'));
-    const mcpConfig = JSON.parse(fs.readFileSync(MCP_CONFIG_PATH, 'utf8'));
+    let mcpConfig = JSON.parse(fs.readFileSync(MCP_CONFIG_PATH, 'utf8'));
     
-    // Substitute environment variables for filesystem server
+    // Process all environment variables in the configuration
+    console.log('Processing environment variables in MCP configuration...');
+    mcpConfig = processEnvironmentVariables(mcpConfig);
+    
+    // Additional filesystem server path handling (for backward compatibility)
     if (mcpConfig.mcpServers && mcpConfig.mcpServers['filesystem'] && mcpConfig.mcpServers['filesystem'].args) {
       const lastArgIndex = mcpConfig.mcpServers['filesystem'].args.length - 1;
       if (lastArgIndex >= 0) {
@@ -60,6 +102,14 @@ function bootstrapConfiguration() {
       if (paths.length > 0 && paths[0]) {
         mcpConfig.mcp.accessControl.allowedDirectories = paths;
       }
+    }
+    
+    // Log Discord configuration status
+    if (mcpConfig.mcpServers && mcpConfig.mcpServers['discord']) {
+      console.log('Discord server configuration processed:');
+      console.log('- Bot token configured:', mcpConfig.mcpServers.discord.env?.DISCORD_BOT_TOKEN ? 'Yes' : 'No');
+      console.log('- Client ID configured:', mcpConfig.mcpServers.discord.env?.DISCORD_CLIENT_ID ? 'Yes' : 'No');
+      console.log('- Guild ID configured:', mcpConfig.mcpServers.discord.env?.DISCORD_GUILD_ID ? 'Yes' : 'No');
     }
     
     // Check if the startup config is enabled
@@ -102,6 +152,7 @@ function bootstrapConfiguration() {
     
     console.log('MCP configuration bootstrap completed successfully.');
     console.log('Filesystem server configured with path:', process.env.MCP_FILESYSTEM_PATHS);
+    console.log('Discord server configured with environment variables from .env file');
     return true;
     
   } catch (error) {

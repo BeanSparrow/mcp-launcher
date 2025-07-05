@@ -1,2 +1,2 @@
-// Authentication tools will be exported here
-// export { AuthenticateTool } from './authenticate.js';
+export { TestConnectionTool } from './test-connection.js';
+export { GetBotInfoTool } from './get-bot-info.js';
