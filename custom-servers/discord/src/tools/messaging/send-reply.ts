@@ -29,7 +29,7 @@ export class SendReplyTool extends BaseDiscordTool {
           },
           allowMentions: {
             type: 'boolean',
-            description: 'Allow @mentions in the reply (default: false for safety)'
+            description: 'Allow @mentions in the reply (default: false for safety). Note: @everyone is never allowed.'
           },
           includeContext: {
             type: 'boolean',
@@ -211,11 +211,18 @@ export class SendReplyTool extends BaseDiscordTool {
   private processMessageContent(content: string, allowMentions: boolean): string {
     let processed = content;
 
-    // Safety: Disable @everyone and @here mentions unless explicitly allowed
+    // CRITICAL SAFETY: ALWAYS disable @everyone and @here mentions regardless of allowMentions setting
+    // This is a hard restriction to prevent accidental mass pings
+    processed = processed
+      .replace(/@everyone/g, '@\u200beveryone')
+      .replace(/@here/g, '@\u200bhere');
+
+    // Additional safety: If mentions are not allowed, also disable user and role mentions
     if (!allowMentions) {
-      processed = processed
-        .replace(/@everyone/g, '@\u200beveryone')
-        .replace(/@here/g, '@\u200bhere');
+      // Disable user mentions
+      processed = processed.replace(/<@!?(\d+)>/g, '@user');
+      // Disable role mentions (but we already handled @everyone/@here above)
+      processed = processed.replace(/<@&(\d+)>/g, '@role');
     }
 
     // Clean up excessive whitespace

@@ -3,7 +3,7 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 
 // Import our tools
 import { TestConnectionTool, GetBotInfoTool } from './auth/index.js';
-import { ListChannelsTool, GetChannelInfoTool } from './channels/index.js';
+import { ListChannelsTool, GetChannelInfoTool, ListRolesTool } from './channels/index.js';
 import { ReadMessagesTool, SendMessageTool, SendReplyTool, SearchMessagesTool } from './messaging/index.js';
 
 export class DiscordToolRegistry {
@@ -25,6 +25,7 @@ export class DiscordToolRegistry {
     // Channel tools
     this.registerTool(new ListChannelsTool(this.context));
     this.registerTool(new GetChannelInfoTool(this.context));
+    this.registerTool(new ListRolesTool(this.context));
     
     // Tier 2 messaging tools
     this.registerTool(new ReadMessagesTool(this.context));

@@ -4,7 +4,7 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 
 export class SendMessageTool extends BaseDiscordTool {
   name = 'discord_send_message';
-  description = 'Send a message to a Discord channel with smart formatting and content validation';
+  description = 'Send a message to a Discord channel with smart formatting and automatic role mention conversion';
   category = 'messaging';
   requiredPermissions: string[] = ['ViewChannel', 'SendMessages'];
 
@@ -21,7 +21,7 @@ export class SendMessageTool extends BaseDiscordTool {
           },
           content: {
             type: 'string',
-            description: 'The message content to send (will be truncated to Discord\'s 2000 character limit)'
+            description: 'The message content to send. Role mentions like @rolename are automatically converted to proper Discord format.'
           },
           replyTo: {
             type: 'string',
@@ -29,7 +29,7 @@ export class SendMessageTool extends BaseDiscordTool {
           },
           allowMentions: {
             type: 'boolean',
-            description: 'Allow @mentions in the message (default: false for safety)'
+            description: 'Allow @mentions in the message (default: false for safety). Note: @everyone is never allowed.'
           }
         },
         required: ['channelId', 'content']
@@ -68,8 +68,8 @@ export class SendMessageTool extends BaseDiscordTool {
 
             const textChannel = channel as TextChannel;
 
-            // Process and validate content
-            let processedContent = this.processMessageContent(args.content, allowMentions);
+            // Process content with automatic role mention conversion
+            let processedContent = await this.processMessageContent(args.content, allowMentions, textChannel);
             
             // Check if content needs to be split
             const messages = this.splitLongMessage(processedContent);
@@ -121,7 +121,8 @@ export class SendMessageTool extends BaseDiscordTool {
               originalLength: args.content.length,
               processedLength: processedContent.length,
               wasSplit: messages.length > 1,
-              replyTo: args.replyTo || null
+              replyTo: args.replyTo || null,
+              roleMentionsProcessed: this.countRoleMentions(args.content, processedContent)
             };
 
             client.destroy();
@@ -169,14 +170,24 @@ export class SendMessageTool extends BaseDiscordTool {
     }
   }
 
-  private processMessageContent(content: string, allowMentions: boolean): string {
+  private async processMessageContent(content: string, allowMentions: boolean, textChannel: TextChannel): Promise<string> {
     let processed = content;
 
-    // Safety: Disable @everyone and @here mentions unless explicitly allowed
-    if (!allowMentions) {
-      processed = processed
-        .replace(/@everyone/g, '@\u200beveryone')
-        .replace(/@here/g, '@\u200bhere');
+    // CRITICAL SAFETY: ALWAYS disable @everyone and @here mentions regardless of allowMentions setting
+    // This is a hard restriction to prevent accidental mass pings
+    processed = processed
+      .replace(/@everyone/g, '@\u200beveryone')
+      .replace(/@here/g, '@\u200bhere');
+
+    // Auto-convert role mentions if mentions are allowed
+    if (allowMentions) {
+      processed = await this.convertRoleMentions(processed, textChannel);
+    } else {
+      // If mentions are not allowed, disable user and role mentions
+      processed = processed.replace(/<@!?(\d+)>/g, '@user');
+      processed = processed.replace(/<@&(\d+)>/g, '@role');
+      // Convert plain text role mentions to safe text
+      processed = processed.replace(/@(\w+)/g, '@\u200b$1');
     }
 
     // Clean up excessive whitespace
@@ -185,6 +196,67 @@ export class SendMessageTool extends BaseDiscordTool {
       .trim();
 
     return processed;
+  }
+
+  private async convertRoleMentions(content: string, textChannel: TextChannel): Promise<string> {
+    // Find all @rolename patterns (but not @everyone/@here which are already handled)
+    const roleMentionPattern = /@([a-zA-Z][a-zA-Z0-9_-]*)/g;
+    const matches = [...content.matchAll(roleMentionPattern)];
+    
+    if (matches.length === 0) {
+      return content;
+    }
+
+    // Get guild roles
+    const guild = textChannel.guild;
+    const roles = guild.roles.cache;
+    
+    let processed = content;
+    const conversions: string[] = [];
+
+    for (const match of matches) {
+      const fullMatch = match[0]; // e.g., "@regulars"
+      const roleName = match[1]; // e.g., "regulars"
+      
+      // Skip @everyone/@here (already handled)
+      if (roleName === 'everyone' || roleName === 'here') {
+        continue;
+      }
+      
+      // Find matching role (case-insensitive)
+      const role = roles.find(r => 
+        r.name.toLowerCase() === roleName.toLowerCase() ||
+        r.name.toLowerCase().replace(/\s+/g, '') === roleName.toLowerCase()
+      );
+      
+      if (role) {
+        // Check if role is mentionable
+        if (role.mentionable) {
+          const properMention = `<@&${role.id}>`;
+          processed = processed.replace(fullMatch, properMention);
+          conversions.push(`${fullMatch} → <@&${role.id}> (${role.name})`);
+        } else {
+          // Role exists but not mentionable - keep as text with warning
+          conversions.push(`${fullMatch} → kept as text (role not mentionable)`);
+        }
+      } else {
+        // Role not found - keep as text
+        conversions.push(`${fullMatch} → kept as text (role not found)`);
+      }
+    }
+
+    // Log conversions for debugging
+    if (conversions.length > 0) {
+      console.error('Role mention conversions:', conversions);
+    }
+
+    return processed;
+  }
+
+  private countRoleMentions(original: string, processed: string): number {
+    const originalMatches = (original.match(/@[a-zA-Z][a-zA-Z0-9_-]*/g) || []).length;
+    const processedMatches = (processed.match(/<@&\d+>/g) || []).length;
+    return processedMatches;
   }
 
   private splitLongMessage(content: string): string[] {
