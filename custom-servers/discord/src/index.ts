@@ -1,5 +1,12 @@
 #!/usr/bin/env node
 
+// Load environment variables from .env file
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load .env from the project root (two levels up from the dist directory)
+dotenv.config({ path: path.join(process.cwd(), '..', '..', '.env') });
+
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
