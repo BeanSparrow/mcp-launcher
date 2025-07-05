@@ -43,21 +43,20 @@ function bootstrapConfiguration() {
     const startupConfig = JSON.parse(fs.readFileSync(STARTUP_CONFIG_PATH, 'utf8'));
     const mcpConfig = JSON.parse(fs.readFileSync(MCP_CONFIG_PATH, 'utf8'));
     
-    // Substitute environment variables in mcpConfig for filesystem paths
-    if (mcpConfig.mcpServers && mcpConfig.mcpServers.filesystem && mcpConfig.mcpServers.filesystem.args) {
-      // Get last argument which should be the path
-      const lastArgIndex = mcpConfig.mcpServers.filesystem.args.length - 1;
+    // Substitute environment variables for filesystem server
+    if (mcpConfig.mcpServers && mcpConfig.mcpServers['filesystem'] && mcpConfig.mcpServers['filesystem'].args) {
+      const lastArgIndex = mcpConfig.mcpServers['filesystem'].args.length - 1;
       if (lastArgIndex >= 0) {
-        const paths = (process.env.MCP_FILESYSTEM_PATHS || '').split(',').map(p => p.trim());
+        const paths = (process.env.MCP_FILESYSTEM_PATHS || '').split(',').map(p => p.trim().replace(/"/g, ''));
         if (paths.length > 0 && paths[0]) {
-          mcpConfig.mcpServers.filesystem.args[lastArgIndex] = paths[0];
+          mcpConfig.mcpServers['filesystem'].args[lastArgIndex] = paths[0];
         }
       }
     }
     
     // Update allowed directories with environment variables
     if (mcpConfig.mcp && mcpConfig.mcp.accessControl && mcpConfig.mcp.accessControl.allowedDirectories) {
-      const paths = (process.env.MCP_FILESYSTEM_PATHS || '').split(',').map(p => p.trim());
+      const paths = (process.env.MCP_FILESYSTEM_PATHS || '').split(',').map(p => p.trim().replace(/"/g, ''));
       if (paths.length > 0 && paths[0]) {
         mcpConfig.mcp.accessControl.allowedDirectories = paths;
       }
@@ -72,6 +71,8 @@ function bootstrapConfiguration() {
     // Update paths in startup config with environment variables
     const sourcePath = MCP_CONFIG_PATH;
     const targetPath = TARGET_CONFIG_PATH;
+    
+    console.log(`Target config path: ${targetPath}`);
     
     // Backup the original configuration if needed
     if (startupConfig.backupOriginal && fs.existsSync(targetPath)) {
@@ -100,6 +101,7 @@ function bootstrapConfiguration() {
     }
     
     console.log('MCP configuration bootstrap completed successfully.');
+    console.log('Filesystem server configured with path:', process.env.MCP_FILESYSTEM_PATHS);
     return true;
     
   } catch (error) {

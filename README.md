@@ -1,247 +1,257 @@
-# Claude MCP Bootstrap Quickstart (Windows)
+# MCP Launcher 🚀
 
-A streamlined bootstrap system for quickly setting up Model Context Protocol (MCP) integration with Claude Desktop on Windows, providing filesystem access, GitHub integration, and other enhanced functionality. **Note: This setup is currently designed for Windows users only.**
+A comprehensive Model Context Protocol (MCP) development environment that enables rapid prototyping and deployment of AI-enhanced tools. This launcher provides a foundation for building custom MCP servers and integrating external services with Claude AI.
 
-## Overview
+## 🎯 Overview
 
-This repository provides a configuration system for Claude Desktop that enables the Model Context Protocol (MCP) integration. MCP allows Claude to access and interact with your filesystem and other services, providing enhanced capabilities beyond the standard Claude experience.
+MCP Launcher follows a modular "3D printer" philosophy - start with basic capabilities and use them to build increasingly sophisticated tools. Currently includes filesystem operations, development scaffolding, and a Discord integration framework.
 
-## Features
+## ✨ Features
 
-- **Filesystem Integration**: Enables Claude Desktop to access and modify files in specified directories
-- **GitHub Integration**: Connect Claude to your GitHub repositories for code management
-- **Extensible Design**: Add additional MCP servers through the extensions system
-- **Environment Variables**: Uses .env file for personal paths and tokens, making it easy to share the setup
-- **Automatic Configuration**: Applies your settings when launching Claude Desktop
+### 🔧 Core Infrastructure
+- **MCP Server Management** - Automated server discovery and registration
+- **Environment Configuration** - Template-based setup with secure credential management
+- **Development Tools** - Hot reload, debugging, and testing utilities
+- **Cross-Platform Support** - Windows batch scripts with extensible architecture
 
-## Directory Structure
+### 📁 Built-in Capabilities
+- **Enhanced Filesystem** - Advanced file operations, search, and analysis
+- **Data Science Tools** - Project scaffolding, CSV analysis, Jupyter notebook generation
+- **Development Automation** - Package creation, dependency management, .gitignore generation
+- **Power Platform Integration** - Power BI templates and DAX generation
+
+### 🔌 Custom Server Framework
+- **Discord Integration** (In Development) - Message reading, channel management, analytics
+- **Modular Architecture** - Easy addition of new service integrations
+- **Tool Registry System** - Automatic tool discovery and categorization
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js 18+ 
+- Claude Desktop App
+- Git (for cloning and development)
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/yourusername/mcp_launcher.git
+   cd mcp_launcher
+   ```
+
+2. **Set up environment:**
+   ```bash
+   # Copy template and configure
+   copy .env.template .env
+   # Edit .env with your paths and tokens
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+4. **Build all servers:**
+   ```bash
+   # Windows
+   SetupLocal.bat
+   
+   # Manual build
+   cd custom-servers/enhanced-filesystem && npm install && npm run build
+   cd ../discord && npm install && npm run build
+   ```
+
+5. **Launch Claude with MCP:**
+   ```bash
+   LaunchClaude.bat
+   ```
+
+### First Steps
+
+Try these commands in Claude to test your setup:
 
 ```
-claude-mcp-bootstrap-quickstart/
-├── .env                       # Personal environment variables (gitignored)
-├── .env.template              # Template for environment variables
-├── .gitignore                 # Specifies intentionally untracked files
-├── LaunchClaude.bat           # Main launcher script
-├── README.md                  # This documentation file
-├── system/                    # Core system files
-│   ├── bootstrap.js           # Script that applies configurations
-│   ├── extensions_loader.js   # Loads extension configurations
-│   ├── mcp_config.json        # MCP configuration
-│   ├── startup_config.json    # Controls how configurations are applied
-│   └── deprecated/            # Older files no longer in use
-├── extensions/                # Extension-specific configurations
-│   └── github/                # GitHub MCP server extension
-│       └── github-mcp.json    # GitHub MCP server configuration
-└── user/                      # For user-specific configurations
+"Create a data science project called 'test_project' of type 'analysis'"
+"List all files in my current directory"
+"Generate a Python .gitignore file"
 ```
 
-## Installation & Setup (Windows)
-
-1. Ensure you have [Node.js](https://nodejs.org/) installed on your Windows system
-2. Ensure Claude Desktop is installed on Windows
-3. Clone or download this repository
-4. Copy `.env.template` to `.env` and update with your personal Windows paths
-5. Run `LaunchClaude.bat` to start Claude Desktop with MCP integration
-
-## Environment Configuration
-
-The `.env` file contains personal configuration values that should not be committed to source control. Copy `.env.template` to `.env` and update the values.
-
-**Note**: By default, the filesystem server directory is set to `User\Documents\Claude` in the `.env.template`, but you can modify the `MCP_FILESYSTEM_PATHS` value to any directory you want Claude to access:
+## 📁 Project Structure
 
 ```
-# User specific paths
-USER_HOME=C:\\Users\\YourUsername
-CLAUDE_DOCS_PATH=C:\\Users\\YourUsername\\Documents\\Claude
-CLAUDE_APP_PATH=C:\\Users\\YourUsername\\AppData\\Local\\AnthropicClaude\\Claude.exe
-CLAUDE_CONFIG_PATH=C:\\Users\\YourUsername\\AppData\\Roaming\\Claude\\claude_desktop_config.json
+mcp_launcher/
+├── custom-servers/           # MCP server implementations
+│   ├── enhanced-filesystem/  # Core filesystem and data tools
+│   └── discord/             # Discord integration (in development)
+├── extensions/              # Extension configurations
+├── system/                  # Core launcher system
+│   ├── bootstrap.js         # MCP server initialization
+│   ├── mcp_config.json     # Server registry
+│   └── startup_config.json # Launch configuration
+├── .env.template           # Environment variable template
+├── LaunchClaude.bat       # Main launcher script
+└── SetupLocal.bat         # Initial setup script
+```
 
-# Node.js path (if not in system PATH)
-# Leave empty to use system PATH
-NODE_PATH=
+## 🛠️ Development
 
-# MCP Configuration
+### Adding New MCP Servers
+
+1. **Create server directory:**
+   ```bash
+   mkdir custom-servers/my-new-server
+   cd custom-servers/my-new-server
+   npm init -y
+   ```
+
+2. **Install MCP SDK:**
+   ```bash
+   npm install @modelcontextprotocol/sdk
+   npm install -D typescript @types/node
+   ```
+
+3. **Create server implementation:**
+   ```typescript
+   // src/index.ts
+   import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+   // ... implement your server
+   ```
+
+4. **Register in configuration:**
+   ```json
+   // system/mcp_config.json
+   {
+     "my-new-server": {
+       "command": "node",
+       "args": ["custom-servers/my-new-server/dist/index.js"]
+     }
+   }
+   ```
+
+### Discord Integration Development
+
+The Discord server framework is ready for tool implementation:
+
+```typescript
+// Example: custom-servers/discord/src/tools/messaging/send-message.ts
+import { BaseDiscordTool } from '../base-discord-tool.js';
+
+export class SendMessageTool extends BaseDiscordTool {
+  name = 'discord_send_message';
+  description = 'Send a message to a Discord channel';
+  category = 'messaging';
+  
+  async execute(args: { channel_id: string; message: string }) {
+    // Implementation here
+  }
+}
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Copy `.env.template` to `.env` and configure:
+
+```bash
+# User Configuration
+USER_HOME="C:\\Users\\YourName"
+CLAUDE_DOCS_PATH="C:\\Users\\YourName\\Documents\\Claude"
+CLAUDE_APP_PATH="C:\\Users\\YourName\\AppData\\Local\\AnthropicClaude\\Claude.exe"
+
+# MCP Settings
 MCP_FILESYSTEM_ENABLED=true
-# Default is User\Documents\Claude but you can change this to any directory you want Claude to access
-MCP_FILESYSTEM_PATHS=C:\\Users\\YourUsername\\Documents\\Claude
+MCP_FILESYSTEM_PATHS="C:\\Users\\YourName\\Documents\\Claude"
 
-# GitHub integration
-GITHUB_TOKEN=your_personal_access_token_here
+# Service Integrations
+GITHUB_TOKEN=your_github_token_here
+DISCORD_BOT_TOKEN=your_discord_bot_token_here
+DISCORD_CLIENT_ID=your_discord_client_id
 ```
 
-## Usage
+### Security Notes
 
-### Launching Claude Desktop with MCP Integration
+- Never commit `.env` files (already in .gitignore)
+- Use `.env.template` to document required variables
+- Store sensitive tokens in environment variables only
 
-Simply run `LaunchClaude.bat` from the repository root. This will:
-1. Load environment variables from `.env`
-2. Load any extension configurations
-3. Apply your MCP configuration
-4. Launch Claude Desktop with MCP integration enabled
+## 🎯 Use Cases
 
-### Customizing MCP Configuration
+### Data Science Workflow
+- Rapid project scaffolding with proper structure
+- CSV analysis and data profiling
+- Jupyter notebook generation with templates
+- Power BI integration for visualization
 
-To modify the MCP server settings:
+### Development Automation
+- Package creation with proper structure
+- Dependency management and requirements generation
+- Code analysis and documentation
+- Git workflow automation
 
-1. Edit `system/mcp_config.json` for core settings
-2. Edit extension-specific configurations in their respective folders
-3. Update environment variables in the `.env` file
-4. Launch Claude Desktop using `LaunchClaude.bat`
+### Service Integration
+- Discord bot management and analytics
+- GitHub repository operations
+- API testing and documentation
+- Workflow automation across platforms
 
-## Available Extensions
-
-### GitHub Integration
-
-The GitHub MCP server provides tools to:
-
-- List and browse repositories
-- Create and manage pull requests
-- Work with issues
-- Execute Git operations
-- Browse repository files
-- Manage repository settings
-
-#### Setting Up GitHub Integration
-
-1. Create a GitHub Personal Access Token:
-   - Visit [GitHub's token settings](https://github.com/settings/tokens)
-   - Generate a new token with appropriate repository permissions
-   - Copy the token value
-
-2. Add your GitHub token to the `.env` file:
-   ```
-   GITHUB_TOKEN=your_personal_access_token_here
-   ```
-
-3. Restart Claude Desktop using the launcher
-
-#### GitHub Usage Examples
-
-Once configured, you can ask Claude to perform GitHub operations like:
-
-- "List my GitHub repositories"
-- "Create a new pull request from my current branch to main"
-- "Show me open issues in my repository"
-- "Commit and push my changes to GitHub"
-- "Clone a repository from GitHub"
-
-## How It Works
-
-The system follows this process when launching Claude Desktop:
-
-1. `LaunchClaude.bat` loads environment variables from `.env`
-2. The extensions loader finds and processes extension configurations
-3. The bootstrap script applies core MCP configuration
-4. All configurations are merged with environment variables resolved
-5. Configuration is applied to Claude Desktop's settings
-6. Claude Desktop is launched with all MCP servers enabled
-
-## Adding New Extensions
-
-To add a new MCP server extension:
-
-1. Create a new directory under `extensions/`
-2. Add a JSON configuration file for the MCP server
-3. Update `.env.template` and your `.env` with any required variables
-4. Add documentation in the extension directory
-5. Restart Claude Desktop to apply the changes
-
-## Troubleshooting (Windows)
-
-If you encounter issues on your Windows system:
-
-1. **Environment Variables**: Ensure you've copied `.env.template` to `.env` and updated the values
-2. **Node.js Missing**: Ensure Node.js is installed and in your PATH, or set the `NODE_PATH` in `.env`
-3. **Claude Desktop Path**: Verify the `CLAUDE_APP_PATH` in `.env` matches your installation
-4. **GitHub Issues**:
-   - Verify your GitHub token has the necessary permissions
-   - Check the Claude Desktop logs for GitHub MCP server errors
-   - Ensure your token is correctly set in the `.env` file
-5. **Bootstrap Errors**: Check the command prompt output for specific error messages
-
-## Contributing
-
-If you want to contribute to this project:
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Create a pull request
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
 
-Remember to never commit your `.env` file as it contains personal paths and tokens.
+### Development Guidelines
 
-## Reference
+- Follow the modular architecture patterns
+- Add comprehensive tool documentation
+- Include error handling and validation
+- Test with real-world scenarios
+- Update configuration templates as needed
 
-### MCP Configuration Options
+## 📚 Resources
 
-The `mcp_config.json` file supports these primary configuration sections:
+- [Model Context Protocol](https://modelcontextprotocol.io/) - Official MCP documentation
+- [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) - SDK reference
+- [Claude Desktop](https://claude.ai/desktop) - Claude Desktop application
+- [Discord.js](https://discord.js.org/) - Discord API wrapper
 
-```json
-{
-  "mcpServers": {
-    "filesystem": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "${MCP_FILESYSTEM_PATHS}"
-      ]
-    }
-  },
-  "mcp": {
-    "enabled": true,
-    "accessControl": {
-      "allowedDirectories": [
-        "${MCP_FILESYSTEM_PATHS}"
-      ],
-      "allowFileOperations": true
-    }
-  }
-}
-```
+## 🐛 Troubleshooting
 
-### GitHub Extension Configuration
+### Common Issues
 
-The GitHub extension uses this configuration format:
+**MCP Server Not Loading:**
+- Check server build: `npm run build` in server directory
+- Verify paths in `system/mcp_config.json`
+- Check console output in `LaunchClaude.bat`
 
-```json
-{
-  "mcpServers": {
-    "github": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-github"
-      ],
-      "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
-      }
-    }
-  }
-}
-```
+**Permission Errors:**
+- Ensure Claude has access to configured filesystem paths
+- Check Windows execution policies for batch scripts
+- Verify environment variable paths are correct
 
-### Startup Configuration Options
+**Discord Integration:**
+- Verify bot token and permissions
+- Check guild ID configuration
+- Ensure bot is added to target server
 
-The `startup_config.json` file controls how configurations are applied:
+### Debug Mode
 
-```json
-{
-  "version": "1.0",
-  "configType": "startup",
-  "enabled": true,
-  "mergeStrategy": "merge",  // How to apply configurations: "merge" or "replace"
-  "backupOriginal": true,    // Whether to backup the original configuration
-  "backupPath": "${CLAUDE_CONFIG_PATH}.backup" // Where to store backups
-}
-```
+Enable detailed logging by modifying server configurations or checking console output during launch.
 
-## Resources
+## 📄 License
 
-- [Model Context Protocol Documentation](https://modelcontextprotocol.io/)
-- [GitHub MCP Server Documentation](https://github.com/modelcontextprotocol/servers)
-- [GitHub API Documentation](https://docs.github.com/en/rest)
+MIT License - see LICENSE file for details.
 
-## License
+## 🙏 Acknowledgments
 
-This project is intended for personal use to enhance Claude Desktop functionality.
+- Anthropic for Claude and MCP framework
+- Open source community for tools and inspiration
+- Contributors and testers
+
+---
+
+**Ready to enhance your AI development workflow?** Start building! 🚀
