@@ -5,6 +5,7 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { TestConnectionTool, GetBotInfoTool } from './auth/index.js';
 import { ListChannelsTool, GetChannelInfoTool, ListRolesTool } from './channels/index.js';
 import { ReadMessagesTool, SendMessageTool, SendReplyTool, SearchMessagesTool } from './messaging/index.js';
+import { AnalyzeActivityTool } from './analytics/index.js';
 
 export class DiscordToolRegistry {
   private tools: Map<string, BaseDiscordTool> = new Map();
@@ -32,6 +33,9 @@ export class DiscordToolRegistry {
     this.registerTool(new SendMessageTool(this.context));
     this.registerTool(new SendReplyTool(this.context));
     this.registerTool(new SearchMessagesTool(this.context));
+    
+    // Tier 3 analytics tools
+    this.registerTool(new AnalyzeActivityTool(this.context));
     
     console.error(`Discord tool registry initialized with ${this.tools.size} tools`);
   }
