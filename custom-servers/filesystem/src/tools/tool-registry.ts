@@ -9,7 +9,6 @@ import {
   DeleteFileTool,
   CopyFileTool,
   MoveFileTool,
-  EditFilePatchTool,
   // Directory operations
   CreateDirectoryTool,
   ListDirectoryTool,
@@ -39,7 +38,6 @@ export class ToolRegistry {
     this.registerTool(new DeleteFileTool(this.context));
     this.registerTool(new CopyFileTool(this.context));
     this.registerTool(new MoveFileTool(this.context));
-    this.registerTool(new EditFilePatchTool(this.context));
 
     // Register directory operation tools
     this.registerTool(new CreateDirectoryTool(this.context));
