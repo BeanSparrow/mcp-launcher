@@ -44,7 +44,7 @@ export class WriteFileTool extends BaseTool {
       
       return this.createResponse(`Successfully wrote to ${filePath}`);
     } catch (error) {
-      return this.createErrorResponse(error);
-    }
+      return this.createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
   }
 }

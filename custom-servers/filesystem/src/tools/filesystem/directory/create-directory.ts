@@ -38,7 +38,7 @@ export class CreateDirectoryTool extends BaseTool {
       
       return this.createResponse(`Successfully created directory: ${dirPath}`);
     } catch (error) {
-      return this.createErrorResponse(error);
-    }
+      return this.createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
   }
 }

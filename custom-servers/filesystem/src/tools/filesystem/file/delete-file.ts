@@ -69,7 +69,7 @@ export class DeleteFileTool extends BaseTool {
         return this.createResponse(`Successfully deleted file: ${filePath}`);
       }
     } catch (error) {
-      return this.createErrorResponse(error);
-    }
+      return this.createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
   }
 }

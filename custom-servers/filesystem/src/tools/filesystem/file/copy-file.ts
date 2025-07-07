@@ -89,8 +89,8 @@ export class CopyFileTool extends BaseTool {
 
       return this.createResponse(`Successfully copied file from ${sourcePath} to ${destinationPath} (${size})`);
     } catch (error) {
-      return this.createErrorResponse(error);
-    }
+      return this.createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
   }
 
   private formatFileSize(bytes: number): string {

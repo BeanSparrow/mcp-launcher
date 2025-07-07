@@ -45,7 +45,7 @@ export class ListDirectoryTool extends BaseTool {
       
       return this.createResponse(output);
     } catch (error) {
-      return this.createErrorResponse(error);
-    }
+      return this.createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
   }
 }

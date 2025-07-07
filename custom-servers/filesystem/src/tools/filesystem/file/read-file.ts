@@ -37,7 +37,7 @@ export class ReadFileTool extends BaseTool {
       const content = await fs.readFile(resolvedPath, 'utf-8');
       return this.createResponse(content);
     } catch (error) {
-      return this.createErrorResponse(error);
-    }
+      return this.createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
   }
 }

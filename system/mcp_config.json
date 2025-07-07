@@ -3,14 +3,14 @@
     "filesystem": {
       "command": "node",
       "args": [
-        "C:\\Users\\stvhu\\Documents\\Claude\\mcp_launcher\\custom-servers\\filesystem\\dist\\index.js",
-        "C:\\Users\\stvhu\\Documents\\Claude"
+        "${CLAUDE_DOCS_PATH}\\mcp-launcher\\custom-servers\\filesystem\\dist\\index.js",
+        "${MCP_FILESYSTEM_PATHS}"
       ]
     },
     "discord": {
       "command": "node",
       "args": [
-        "C:\\Users\\stvhu\\Documents\\Claude\\mcp_launcher\\custom-servers\\discord\\dist\\index.js"
+        "${CLAUDE_DOCS_PATH}\\mcp-launcher\\custom-servers\\discord\\dist\\index.js"
       ],
       "env": {
         "DISCORD_BOT_TOKEN": "${DISCORD_BOT_TOKEN}",
@@ -23,7 +23,7 @@
     "enabled": true,
     "accessControl": {
       "allowedDirectories": [
-        "C:\\Users\\stvhu\\Documents\\Claude"
+        "${MCP_FILESYSTEM_PATHS}"
       ],
       "allowFileOperations": true
     }
