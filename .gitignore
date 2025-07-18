@@ -9,6 +9,16 @@ claude_desktop_config.json.backup
 *.personal
 *.local
 
+# SQLite databases - NEVER commit these (contain user data)
+custom-servers/sqlite/data/
+**/*.db
+**/*.sqlite*
+**/backups/
+
+# Development notes and ideas - personal workspace
+Dev Ideas/
+docs/
+
 # Node.js dependencies and artifacts
 node_modules/
 npm-debug.log*
@@ -149,9 +159,6 @@ venv.bak/
 *.csv
 *.xlsx
 *.json.large
-*.db
-*.sqlite
-*.sqlite3
 
 # Ignore large files
 *.zip
