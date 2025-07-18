@@ -17,7 +17,8 @@
         "DISCORD_CLIENT_ID": "${DISCORD_CLIENT_ID}",
         "DISCORD_GUILD_ID": "${DISCORD_GUILD_ID}"
       }
-    },
+    }
+  },
   "mcp": {
     "enabled": true,
     "accessControl": {

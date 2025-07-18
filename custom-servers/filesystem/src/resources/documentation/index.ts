@@ -1,0 +1,1 @@
+export { DevelopmentLawsResource } from './development-laws-resource.js';

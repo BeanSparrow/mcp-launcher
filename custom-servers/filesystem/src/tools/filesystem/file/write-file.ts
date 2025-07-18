@@ -1,5 +1,5 @@
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { BaseTool, ToolResponse } from '../../base-tool.js';
+import { z } from 'zod';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -8,25 +8,11 @@ export class WriteFileTool extends BaseTool {
   readonly description = 'Create a new file or overwrite an existing file';
   readonly category = 'filesystem';
 
-  getToolDefinition(): Tool {
-    return {
-      name: this.name,
-      description: this.description,
-      inputSchema: {
-        type: 'object',
-        properties: {
-          path: {
-            type: 'string',
-            description: 'Path to the file to write',
-          },
-          content: {
-            type: 'string',
-            description: 'Content to write to the file',
-          },
-        },
-        required: ['path', 'content'],
-      },
-    };
+  getInputSchema() {
+    return z.object({
+      path: z.string().describe('Path to the file to write'),
+      content: z.string().describe('Content to write to the file'),
+    });
   }
 
   async execute(args: Record<string, any>): Promise<ToolResponse> {
@@ -45,6 +31,6 @@ export class WriteFileTool extends BaseTool {
       return this.createResponse(`Successfully wrote to ${filePath}`);
     } catch (error) {
       return this.createErrorResponse(error instanceof Error ? error : new Error(String(error)));
-      }
+    }
   }
 }

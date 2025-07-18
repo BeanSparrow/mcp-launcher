@@ -1,5 +1,5 @@
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { BaseTool, ToolResponse } from '../../base-tool.js';
+import { z } from 'zod';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -8,26 +8,11 @@ export class DeleteFileTool extends BaseTool {
   readonly description = 'Delete a file or directory';
   readonly category = 'filesystem';
 
-  getToolDefinition(): Tool {
-    return {
-      name: this.name,
-      description: this.description,
-      inputSchema: {
-        type: 'object',
-        properties: {
-          path: {
-            type: 'string',
-            description: 'Path to the file or directory to delete',
-          },
-          recursive: {
-            type: 'boolean',
-            description: 'If true, delete directories and their contents recursively (default: false)',
-            default: false,
-          },
-        },
-        required: ['path'],
-      },
-    };
+  getInputSchema() {
+    return z.object({
+      path: z.string().describe('Path to the file or directory to delete'),
+      recursive: z.boolean().default(false).describe('If true, delete directories and their contents recursively (default: false)'),
+    });
   }
 
   async execute(args: Record<string, any>): Promise<ToolResponse> {
@@ -70,6 +55,6 @@ export class DeleteFileTool extends BaseTool {
       }
     } catch (error) {
       return this.createErrorResponse(error instanceof Error ? error : new Error(String(error)));
-      }
+    }
   }
 }

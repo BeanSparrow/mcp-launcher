@@ -1,5 +1,5 @@
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { BaseTool, ToolResponse } from '../base-tool.js';
+import { z } from 'zod';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -8,26 +8,11 @@ export class CreateDataProjectTool extends BaseTool {
   readonly description = 'Create a data science project structure';
   readonly category = 'data-science';
 
-  getToolDefinition(): Tool {
-    return {
-      name: this.name,
-      description: this.description,
-      inputSchema: {
-        type: 'object',
-        properties: {
-          name: {
-            type: 'string',
-            description: 'Project name',
-          },
-          type: {
-            type: 'string',
-            enum: ['analysis', 'ml', 'dashboard'],
-            description: 'Type of project',
-          },
-        },
-        required: ['name', 'type'],
-      },
-    };
+  getInputSchema() {
+    return z.object({
+      name: z.string().describe('Project name'),
+      type: z.enum(['analysis', 'ml', 'dashboard']).describe('Type of project'),
+    });
   }
 
   async execute(args: Record<string, any>): Promise<ToolResponse> {
@@ -69,6 +54,6 @@ export class CreateDataProjectTool extends BaseTool {
       return this.createResponse(output);
     } catch (error) {
       return this.createErrorResponse(error instanceof Error ? error : new Error(String(error)));
-      }
+    }
   }
 }

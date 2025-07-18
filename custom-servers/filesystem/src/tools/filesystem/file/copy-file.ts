@@ -1,5 +1,5 @@
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { BaseTool, ToolResponse } from '../../base-tool.js';
+import { z } from 'zod';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -8,30 +8,12 @@ export class CopyFileTool extends BaseTool {
   readonly description = 'Copy a file from source to destination';
   readonly category = 'filesystem';
 
-  getToolDefinition(): Tool {
-    return {
-      name: this.name,
-      description: this.description,
-      inputSchema: {
-        type: 'object',
-        properties: {
-          source: {
-            type: 'string',
-            description: 'Path to the source file',
-          },
-          destination: {
-            type: 'string',
-            description: 'Path to the destination file',
-          },
-          overwrite: {
-            type: 'boolean',
-            description: 'Whether to overwrite existing files (default: false)',
-            default: false,
-          },
-        },
-        required: ['source', 'destination'],
-      },
-    };
+  getInputSchema() {
+    return z.object({
+      source: z.string().describe('Path to the source file'),
+      destination: z.string().describe('Path to the destination file'),
+      overwrite: z.boolean().default(false).describe('Whether to overwrite existing files (default: false)'),
+    });
   }
 
   async execute(args: Record<string, any>): Promise<ToolResponse> {
@@ -90,7 +72,7 @@ export class CopyFileTool extends BaseTool {
       return this.createResponse(`Successfully copied file from ${sourcePath} to ${destinationPath} (${size})`);
     } catch (error) {
       return this.createErrorResponse(error instanceof Error ? error : new Error(String(error)));
-      }
+    }
   }
 
   private formatFileSize(bytes: number): string {

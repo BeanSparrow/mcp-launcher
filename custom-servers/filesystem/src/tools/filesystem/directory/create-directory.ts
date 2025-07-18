@@ -1,5 +1,5 @@
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { BaseTool, ToolResponse } from '../../base-tool.js';
+import { z } from 'zod';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -8,21 +8,10 @@ export class CreateDirectoryTool extends BaseTool {
   readonly description = 'Create a new directory';
   readonly category = 'filesystem';
 
-  getToolDefinition(): Tool {
-    return {
-      name: this.name,
-      description: this.description,
-      inputSchema: {
-        type: 'object',
-        properties: {
-          path: {
-            type: 'string',
-            description: 'Path to the directory to create',
-          },
-        },
-        required: ['path'],
-      },
-    };
+  getInputSchema() {
+    return z.object({
+      path: z.string().describe('Path to the directory to create'),
+    });
   }
 
   async execute(args: Record<string, any>): Promise<ToolResponse> {
@@ -39,6 +28,6 @@ export class CreateDirectoryTool extends BaseTool {
       return this.createResponse(`Successfully created directory: ${dirPath}`);
     } catch (error) {
       return this.createErrorResponse(error instanceof Error ? error : new Error(String(error)));
-      }
+    }
   }
 }

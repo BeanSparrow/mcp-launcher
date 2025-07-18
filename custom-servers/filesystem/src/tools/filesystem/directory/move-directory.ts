@@ -1,5 +1,5 @@
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { BaseTool, ToolResponse } from '../../base-tool.js';
+import { z } from 'zod';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -8,35 +8,13 @@ export class MoveDirectoryTool extends BaseTool {
   readonly description = 'Move or rename a directory from source to destination';
   readonly category = 'filesystem';
 
-  getToolDefinition(): Tool {
-    return {
-      name: this.name,
-      description: this.description,
-      inputSchema: {
-        type: 'object',
-        properties: {
-          source: {
-            type: 'string',
-            description: 'Path to the source directory',
-          },
-          destination: {
-            type: 'string',
-            description: 'Path to the destination directory',
-          },
-          merge_existing: {
-            type: 'boolean',
-            description: 'If destination exists, merge contents instead of failing (default: false)',
-            default: false,
-          },
-          overwrite_files: {
-            type: 'boolean',
-            description: 'When merging, overwrite existing files (default: false)',
-            default: false,
-          },
-        },
-        required: ['source', 'destination'],
-      },
-    };
+  getInputSchema() {
+    return z.object({
+      source: z.string().describe('Path to the source directory'),
+      destination: z.string().describe('Path to the destination directory'),
+      merge_existing: z.boolean().default(false).describe('If destination exists, merge contents instead of failing (default: false)'),
+      overwrite_files: z.boolean().default(false).describe('When merging, overwrite existing files (default: false)'),
+    });
   }
 
   async execute(args: Record<string, any>): Promise<ToolResponse> {
@@ -49,7 +27,6 @@ export class MoveDirectoryTool extends BaseTool {
       const resolvedSource = path.resolve(sourcePath);
       const resolvedDestination = path.resolve(destinationPath);
       
-      // Validate both paths are allowed
       if (!this.context.isPathAllowed(resolvedSource)) {
         throw new Error(`Access denied to source: ${sourcePath}`);
       }
@@ -68,132 +45,60 @@ export class MoveDirectoryTool extends BaseTool {
         throw new Error(`Source directory does not exist: ${sourcePath}`);
       }
 
-      // Check if destination is inside source (prevent moving into itself)
-      if (resolvedDestination.startsWith(resolvedSource + path.sep) || resolvedDestination === resolvedSource) {
-        throw new Error(`Cannot move directory into itself: ${destinationPath} is inside or same as ${sourcePath}`);
-      }
-
-      // Check if destination already exists
-      let destinationExists = false;
+      // Check if destination exists
       try {
         const destStats = await fs.stat(resolvedDestination);
-        destinationExists = true;
-        if (!destStats.isDirectory()) {
-          throw new Error(`Destination exists and is not a directory: ${destinationPath}`);
-        }
-        if (!mergeExisting) {
-          throw new Error(`Destination directory already exists (use merge_existing=true to merge): ${destinationPath}`);
+        if (destStats.isDirectory()) {
+          if (!mergeExisting) {
+            throw new Error(`Destination directory already exists (use merge_existing=true to merge): ${destinationPath}`);
+          }
+          // Merge directories
+          await this.mergeDirectories(resolvedSource, resolvedDestination, overwriteFiles);
+          // Remove source directory after successful merge
+          await fs.rm(resolvedSource, { recursive: true });
+          return this.createResponse(`Successfully moved and merged directory from ${sourcePath} to ${destinationPath}`);
+        } else {
+          throw new Error(`Destination exists but is not a directory: ${destinationPath}`);
         }
       } catch (error) {
-        if (error instanceof Error && error.message.includes('Destination directory already exists')) {
+        if (error instanceof Error && error.message.includes('ENOENT')) {
+          // Destination doesn't exist, simple move
+          await fs.rename(resolvedSource, resolvedDestination);
+          return this.createResponse(`Successfully moved directory from ${sourcePath} to ${destinationPath}`);
+        } else {
           throw error;
         }
-        // Destination doesn't exist, proceed with simple move
-      }
-
-      let moveStats: any;
-
-      if (destinationExists && mergeExisting) {
-        // Complex merge operation
-        moveStats = await this.mergeDirectories(resolvedSource, resolvedDestination, overwriteFiles);
-        
-        // Remove the source directory after successful merge
-        await fs.rm(resolvedSource, { recursive: true, force: true });
-      } else {
-        // Simple atomic move/rename
-        await fs.mkdir(path.dirname(resolvedDestination), { recursive: true });
-        await fs.rename(resolvedSource, resolvedDestination);
-        
-        moveStats = {
-          filesMoved: 'all',
-          directoriesMoved: 'all',
-          filesSkipped: 0,
-          operation: 'atomic_move'
-        };
-      }
-
-      // Determine if this was a rename or move operation
-      const sourceDir = path.dirname(resolvedSource);
-      const destDir = path.dirname(resolvedDestination);
-      const operation = sourceDir === destDir ? 'renamed' : 'moved';
-
-      if (moveStats.operation === 'atomic_move') {
-        return this.createResponse(`Successfully ${operation} directory from ${sourcePath} to ${destinationPath} (atomic operation)`);
-      } else {
-        return this.createResponse(
-          `Successfully ${operation} directory from ${sourcePath} to ${destinationPath} (merge operation)\n` +
-          `Files moved: ${moveStats.filesMoved}\n` +
-          `Directories moved: ${moveStats.directoriesMoved}\n` +
-          `Files skipped: ${moveStats.filesSkipped}`
-        );
       }
     } catch (error) {
       return this.createErrorResponse(error instanceof Error ? error : new Error(String(error)));
-      }
+    }
   }
 
-  private async mergeDirectories(sourceDir: string, destDir: string, overwriteFiles: boolean): Promise<any> {
-    const stats = {
-      filesMoved: 0,
-      directoriesMoved: 0,
-      filesSkipped: 0,
-    };
-
-    await this.mergeDirectoryRecursive(sourceDir, destDir, overwriteFiles, stats);
-    return stats;
-  }
-
-  private async mergeDirectoryRecursive(sourceDir: string, destDir: string, overwriteFiles: boolean, stats: any): Promise<void> {
-    const entries = await fs.readdir(sourceDir, { withFileTypes: true });
-
+  private async mergeDirectories(source: string, destination: string, overwriteFiles: boolean): Promise<void> {
+    const entries = await fs.readdir(source, { withFileTypes: true });
+    
     for (const entry of entries) {
-      const sourcePath = path.join(sourceDir, entry.name);
-      const destPath = path.join(destDir, entry.name);
-
-      // Check if paths are allowed
-      if (!this.context.isPathAllowed(sourcePath) || !this.context.isPathAllowed(destPath)) {
-        continue;
-      }
-
+      const srcPath = path.join(source, entry.name);
+      const destPath = path.join(destination, entry.name);
+      
       if (entry.isDirectory()) {
-        // Create destination directory if it doesn't exist
         try {
           await fs.mkdir(destPath, { recursive: true });
-          stats.directoriesMoved++;
-        } catch {
-          // Directory might already exist
-        }
-
-        // Recursively merge contents
-        await this.mergeDirectoryRecursive(sourcePath, destPath, overwriteFiles, stats);
-
-        // Remove source directory if it's now empty
-        try {
-          await fs.rmdir(sourcePath);
-        } catch {
-          // Directory might not be empty, that's ok
+          await this.mergeDirectories(srcPath, destPath, overwriteFiles);
+        } catch (error) {
+          // Directory might already exist, try to merge
+          await this.mergeDirectories(srcPath, destPath, overwriteFiles);
         }
       } else if (entry.isFile()) {
-        // Check if destination file exists
-        let shouldMove = true;
-        try {
-          await fs.access(destPath);
-          if (!overwriteFiles) {
-            stats.filesSkipped++;
-            shouldMove = false;
+        if (!overwriteFiles) {
+          try {
+            await fs.access(destPath);
+            continue; // Skip existing files
+          } catch {
+            // File doesn't exist, proceed with move
           }
-        } catch {
-          // File doesn't exist, proceed with move
         }
-
-        if (shouldMove) {
-          // Create destination directory if needed
-          await fs.mkdir(path.dirname(destPath), { recursive: true });
-          
-          // Move the file
-          await fs.rename(sourcePath, destPath);
-          stats.filesMoved++;
-        }
+        await fs.copyFile(srcPath, destPath);
       }
     }
   }

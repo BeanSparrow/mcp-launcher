@@ -1,24 +1,30 @@
 #!/usr/bin/env node
 
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
 import path from 'path';
 import { ToolRegistry, ToolContext } from './tools/index.js';
+import { ResourceRegistry, ResourceContext } from './resources/index.js';
+import { z } from 'zod';
 
 class EnhancedFilesystemServer {
-  private server: Server;
+  private mcpServer: McpServer;
   private allowedDirectories: string[];
   private toolRegistry: ToolRegistry;
+  private resourceRegistry: ResourceRegistry;
 
   constructor() {
-    this.server = new Server(
+    // Create McpServer with basic info
+    this.mcpServer = new McpServer(
       {
         name: 'enhanced-filesystem',
         version: '1.0.0',
+      },
+      {
+        capabilities: {
+          tools: { listChanged: true },
+          resources: { listChanged: true },
+        }
       }
     );
 
@@ -27,53 +33,80 @@ class EnhancedFilesystemServer {
       throw new Error('At least one allowed directory must be provided');
     }
 
-    // Create tool context
-    const toolContext: ToolContext = {
+    // Create shared context
+    const context = {
       allowedDirectories: this.allowedDirectories,
       isPathAllowed: this.isPathAllowed.bind(this)
     };
 
-    // Initialize tool registry
-    this.toolRegistry = new ToolRegistry(toolContext);
+    // Initialize registries
+    this.toolRegistry = new ToolRegistry(context as ToolContext);
+    this.resourceRegistry = new ResourceRegistry(context as ResourceContext);
 
-    this.setupRequestHandlers();
+    // Register tools and resources with MCP server
+    this.registerToolsWithMcp();
+    this.registerResourcesWithMcp();
   }
 
-  private setupRequestHandlers() {
-    // Handle tool listing
-    this.server.setRequestHandler(ListToolsRequestSchema, async () => {
-      const tools = this.toolRegistry.getAllTools();
-      console.error(`Registered ${tools.length} tools across ${this.toolRegistry.getCategories().length} categories`);
-      return { tools };
-    });
-
-    // Handle tool execution
-    this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
-      const { name, arguments: args } = request.params;
-
-      try {
-        if (!args) {
-          throw new Error('No arguments provided');
-        }
-
-        if (!this.toolRegistry.hasTool(name)) {
-          throw new Error(`Unknown tool: ${name}`);
-        }
-
-        return await this.toolRegistry.executeTool(name, args);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        return {
-          content: [
-            {
-              type: 'text',
-              text: `Error: ${errorMessage}`,
-            },
-          ],
-          isError: true,
-        };
+  private registerToolsWithMcp() {
+    const tools = this.toolRegistry.getAllTools();
+    
+    for (const tool of tools) {
+      const schema = tool.getInputSchema();
+      
+      if (schema && schema instanceof z.ZodObject) {
+        // Register tool with Zod object schema
+        this.mcpServer.tool(
+          tool.name,
+          tool.description,
+          schema.shape,
+          async (args: any) => {
+            return await tool.execute(args);
+          }
+        );
+      } else if (schema) {
+        // Register tool with other Zod schema
+        this.mcpServer.tool(
+          tool.name,
+          tool.description,
+          { args: schema },
+          async (args: any) => {
+            return await tool.execute(args);
+          }
+        );
+      } else {
+        // Register tool without schema (no arguments)
+        this.mcpServer.tool(
+          tool.name,
+          tool.description,
+          async () => {
+            return await tool.execute({});
+          }
+        );
       }
-    });
+    }
+
+    console.error(`Registered ${tools.length} tools across ${this.toolRegistry.getCategories().length} categories`);
+  }
+
+  private registerResourcesWithMcp() {
+    const resources = this.resourceRegistry.getAllResources();
+    
+    for (const resource of resources) {
+      this.mcpServer.resource(
+        resource.name,
+        resource.uri,
+        {
+          description: resource.description,
+          mimeType: resource.mimeType
+        },
+        async (uri: URL) => {
+          return await resource.read(uri);
+        }
+      );
+    }
+
+    console.error(`Registered ${resources.length} resources across ${this.resourceRegistry.getCategories().length} categories`);
   }
 
   private isPathAllowed(filePath: string): boolean {
@@ -86,17 +119,27 @@ class EnhancedFilesystemServer {
 
   async run() {
     const transport = new StdioServerTransport();
-    await this.server.connect(transport);
+    await this.mcpServer.connect(transport);
     
     // Log tool information
-    const categories = this.toolRegistry.getCategories();
+    const toolCategories = this.toolRegistry.getCategories();
     console.error('Enhanced Filesystem MCP server running on stdio');
-    console.error(`Tool categories: ${categories.join(', ')}`);
+    console.error(`Tool categories: ${toolCategories.join(', ')}`);
     
     // Log tools by category
-    for (const category of categories) {
+    for (const category of toolCategories) {
       const tools = this.toolRegistry.getToolsByCategory(category);
       console.error(`${category}: ${tools.map(t => t.name).join(', ')}`);
+    }
+
+    // Log resource information
+    const resourceCategories = this.resourceRegistry.getCategories();
+    console.error(`Resource categories: ${resourceCategories.join(', ')}`);
+    
+    // Log resources by category
+    for (const category of resourceCategories) {
+      const resources = this.resourceRegistry.getResourcesByCategory(category);
+      console.error(`${category}: ${resources.map(r => r.name).join(', ')}`);
     }
   }
 }

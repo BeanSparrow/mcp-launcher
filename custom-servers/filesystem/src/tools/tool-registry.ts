@@ -1,5 +1,4 @@
 import { BaseTool, ToolContext } from './base-tool.js';
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
 
 // Import filesystem tools
 import {
@@ -54,8 +53,8 @@ export class ToolRegistry {
     this.tools.set(tool.name, tool);
   }
 
-  getAllTools(): Tool[] {
-    return Array.from(this.tools.values()).map(tool => tool.getToolDefinition());
+  getAllTools(): BaseTool[] {
+    return Array.from(this.tools.values());
   }
 
   getToolsByCategory(category: string): BaseTool[] {
@@ -67,26 +66,11 @@ export class ToolRegistry {
     return Array.from(categories);
   }
 
-  async executeTool(name: string, args: Record<string, any>) {
-    const tool = this.tools.get(name);
-    if (!tool) {
-      throw new Error(`Unknown tool: ${name}`);
-    }
-    return await tool.execute(args);
+  getTool(name: string): BaseTool | undefined {
+    return this.tools.get(name);
   }
 
   hasTool(name: string): boolean {
     return this.tools.has(name);
-  }
-
-  getToolInfo(name: string): { name: string; description: string; category: string } | null {
-    const tool = this.tools.get(name);
-    if (!tool) return null;
-    
-    return {
-      name: tool.name,
-      description: tool.description,
-      category: tool.category
-    };
   }
 }

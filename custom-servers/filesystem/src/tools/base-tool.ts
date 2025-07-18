@@ -1,17 +1,13 @@
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import { z, ZodSchema } from 'zod';
 
 export interface ToolContext {
   allowedDirectories: string[];
   isPathAllowed: (filePath: string) => boolean;
 }
 
-export interface ToolResponse {
-  content: Array<{
-    type: 'text';
-    text: string;
-  }>;
-  isError?: boolean;
-}
+// Use the exact MCP CallToolResult type
+export type ToolResponse = CallToolResult;
 
 export abstract class BaseTool {
   abstract readonly name: string;
@@ -20,7 +16,10 @@ export abstract class BaseTool {
 
   constructor(protected context: ToolContext) {}
 
-  abstract getToolDefinition(): Tool;
+  // Return Zod schema for input validation
+  abstract getInputSchema(): ZodSchema | undefined;
+
+  // Execute method with proper typing
   abstract execute(args: Record<string, any>): Promise<ToolResponse>;
 
   protected createResponse(text: string, isError: boolean = false): ToolResponse {

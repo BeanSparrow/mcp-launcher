@@ -1,5 +1,5 @@
-import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { BaseTool, ToolResponse } from '../../base-tool.js';
+import { z } from 'zod';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -8,21 +8,10 @@ export class ReadFileTool extends BaseTool {
   readonly description = 'Read the complete contents of a file';
   readonly category = 'filesystem';
 
-  getToolDefinition(): Tool {
-    return {
-      name: this.name,
-      description: this.description,
-      inputSchema: {
-        type: 'object',
-        properties: {
-          path: {
-            type: 'string',
-            description: 'Path to the file to read',
-          },
-        },
-        required: ['path'],
-      },
-    };
+  getInputSchema() {
+    return z.object({
+      path: z.string().describe('Path to the file to read'),
+    });
   }
 
   async execute(args: Record<string, any>): Promise<ToolResponse> {
@@ -38,6 +27,6 @@ export class ReadFileTool extends BaseTool {
       return this.createResponse(content);
     } catch (error) {
       return this.createErrorResponse(error instanceof Error ? error : new Error(String(error)));
-      }
+    }
   }
 }
