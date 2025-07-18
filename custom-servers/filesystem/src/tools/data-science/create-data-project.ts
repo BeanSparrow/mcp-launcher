@@ -68,7 +68,7 @@ export class CreateDataProjectTool extends BaseTool {
       const output = `✅ Created ${type} project '${name}' at ${projectPath}\n\nDirectories created: ${directories.join(', ')}\nFiles created: README.md, .gitignore`;
       return this.createResponse(output);
     } catch (error) {
-      return this.createErrorResponse(error);
-    }
+      return this.createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
   }
 }

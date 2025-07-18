@@ -90,7 +90,7 @@ export class MoveFileTool extends BaseTool {
 
       return this.createResponse(`Successfully ${operation} file from ${sourcePath} to ${destinationPath}`);
     } catch (error) {
-      return this.createErrorResponse(error);
-    }
+      return this.createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
   }
 }

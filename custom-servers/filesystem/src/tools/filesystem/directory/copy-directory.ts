@@ -141,8 +141,8 @@ export class CopyDirectoryTool extends BaseTool {
         `Total size: ${sizeStr}`
       );
     } catch (error) {
-      return this.createErrorResponse(error);
-    }
+      return this.createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
   }
 
   private async copyDirectoryRecursive(

@@ -116,8 +116,8 @@ export class SearchFilesTool extends BaseTool {
 
       return this.createResponse(this.formatResults(results, args));
     } catch (error) {
-      return this.createErrorResponse(error);
-    }
+      return this.createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
   }
 
   private async searchFiles(options: {

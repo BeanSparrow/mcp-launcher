@@ -187,8 +187,8 @@ export class EditFilePatchTool extends BaseTool {
 
       return this.createResponse(successMessage);
     } catch (error) {
-      return this.createErrorResponse(error);
-    }
+      return this.createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
   }
 
   private analyzeUsageEfficiency(fileStats: any, lines: string[], edits: PatchEdit[]): UsageGuidance {

@@ -128,8 +128,8 @@ export class MoveDirectoryTool extends BaseTool {
         );
       }
     } catch (error) {
-      return this.createErrorResponse(error);
-    }
+      return this.createErrorResponse(error instanceof Error ? error : new Error(String(error)));
+      }
   }
 
   private async mergeDirectories(sourceDir: string, destDir: string, overwriteFiles: boolean): Promise<any> {
