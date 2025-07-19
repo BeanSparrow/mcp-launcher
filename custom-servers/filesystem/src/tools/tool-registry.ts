@@ -21,6 +21,11 @@ import {
   CreateDataProjectTool
 } from './data-science/index.js';
 
+// Import development tools
+import {
+  ReadDevelopmentLawsTool
+} from './development/index.js';
+
 export class ToolRegistry {
   private tools: Map<string, BaseTool> = new Map();
   private context: ToolContext;
@@ -47,6 +52,9 @@ export class ToolRegistry {
 
     // Register data science tools
     this.registerTool(new CreateDataProjectTool(this.context));
+
+    // Register development tools
+    this.registerTool(new ReadDevelopmentLawsTool(this.context));
   }
 
   private registerTool(tool: BaseTool) {
